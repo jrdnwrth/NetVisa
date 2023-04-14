@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32414.318
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetVisa", "NetVisa\NetVisa.csproj", "{78E010C5-9C1B-46C0-9DD1-2E0AEB5F6B04}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingNetVisa", "TestingNetVisa\TestingNetVisa.csproj", "{6CF3A8DC-04B8-4431-9342-F6E9F7FED0EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78E010C5-9C1B-46C0-9DD1-2E0AEB5F6B04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78E010C5-9C1B-46C0-9DD1-2E0AEB5F6B04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78E010C5-9C1B-46C0-9DD1-2E0AEB5F6B04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78E010C5-9C1B-46C0-9DD1-2E0AEB5F6B04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CF3A8DC-04B8-4431-9342-F6E9F7FED0EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CF3A8DC-04B8-4431-9342-F6E9F7FED0EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CF3A8DC-04B8-4431-9342-F6E9F7FED0EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CF3A8DC-04B8-4431-9342-F6E9F7FED0EA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {047AFC62-BFEF-4762-AA6F-0D9EE4D1FAE7}
+	EndGlobalSection
+EndGlobal
