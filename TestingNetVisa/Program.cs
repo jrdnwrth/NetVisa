@@ -31,6 +31,6 @@ public class Program
         var vset2 = visa.ReadStringUnknownLength();
 
         // Prints: "VSET 0.000   \r\n"
-        Console.WriteLine('"' + vset1.Replace("\n", @"\n").Replace("\r", @"\r") + '"' + "\n");
+        Console.WriteLine('"' + vset2.Replace("\n", @"\n").Replace("\r", @"\r") + '"' + "\n");
     }
 }
