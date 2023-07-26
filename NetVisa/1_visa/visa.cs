@@ -101,13 +101,13 @@ public class Visa : IDisposable
     {
         this._readLocker = new object();
         this._installedVisaCsrqHandler = null;
-        this.Session = new Visa_Session_Handle(resource_name, resource_manager.driver.visa_plugin);
+        this.Session = new Visa_Session_Handle(resource_name);
         this._driver = resource_manager.driver;
         this.resource_manager = resource_manager;
         try
         {
             int session;
-            this._ThrowOnError(this._driver.Open(this.resource_manager.handle, this.Session.VisaResourceName, 0U, 0U, out session), "Error when opening new VISA Session. ResourceName: '" + resource_name + "'");
+            this._ThrowOnError(this._driver.Open(this.resource_manager.handle, this.Session.ResourceName, 0U, 0U, out session), "Error when opening new VISA Session. ResourceName: '" + resource_name + "'");
             this.Session.Handle = session;
             this.InterfaceType = this._GetAttributeInt(1073676657U);
             this.ResourceClass = this._GetAttributeString(3221159937U);
@@ -133,8 +133,11 @@ public class Visa : IDisposable
     /// <param name="context">Additional optional text</param>
     private int _ThrowOnError(int status, string context = "")
     {
+        // No issues
         if (status >= 0)
             return status;
+
+        // There was a problem.  Build an error message.
         string str = !string.IsNullOrEmpty(context) ? (!context.StartsWith("$", StringComparison.Ordinal) ? string.Format("{0}: {1} ", this, context) : context.TrimStart('$') + " ") : string.Format("{0}: ", this);
         if (status == -1073807339)
             throw new Exception(this.Session.ResourceName + str + $"Timeout occurred. VISA timeout is set to {this.Timeout} ms");
@@ -143,6 +146,12 @@ public class Visa : IDisposable
             message = str + "Given Resource Name is invalid or does not exist.";
         else
             message = str + string.Format("VISA Error 0x{0:X}: {1}", status, this._GetVISAStatusDesc(status));
+
+        // Add troubleshooting hints
+        if (status == -1073807346)
+            message = "The visa session is not valid; did you close the resource manager before finishing communications?: " + message;
+
+        // Throw the final message.
         throw new Visa_Exception(this.Session.ResourceName, message);
     }
 
@@ -230,7 +239,7 @@ public class Visa : IDisposable
         this.Close();
     }
 
-    /// <summary>Close the resource manager and the visa session</summary>
+    /// <summary>Close the visa session</summary>
     public void Close()
     {
         int num = this._driver.Close(this.Session.Handle);

@@ -86,9 +86,6 @@ namespace NetVisa
             this.Timeout = this.Settings.VisaTimeout;
             this.OpcTimeout = this.Settings.OpcTimeout;
             this.ReadStbVisaTimeout = this.Settings.ReadStbVisaTimeout;
-
-            this.Clear();
-            this.Write("*CLS");
         }
 
         /// <summary>
@@ -97,7 +94,7 @@ namespace NetVisa
         /// The First read is performed with the fixed size of 1024 bytes.
         /// The Second read is then performed with 64kB segments, until all the data are read out.
         /// </summary>
-        public string ReadStringUnknownLength()
+        public string ReadString()
         {
             DateTime now = DateTime.Now;
             bool moreDataAvailable;
@@ -220,7 +217,7 @@ namespace NetVisa
         public string QueryStringUnknownLength(string query)
         {
             this.Write(query);
-            return this.ReadStringUnknownLength();
+            return this.ReadString();
         }
 
 
@@ -231,7 +228,7 @@ namespace NetVisa
         public string? QuerySystemError()
         {
             this.Write("SYST:ERR?");
-            string str = this.ReadStringUnknownLength();
+            string str = this.ReadString();
             if (str.StartsWith("0,") || str.StartsWith("+0,"))
                 return null;
             return str;

@@ -7,11 +7,34 @@ namespace NetVisa;
 
 /// <summary>
 /// Visa Resource Manager
-/// Provides:
-/// - FindResources()
+/// # WHEN TO CLOSE THE RESOURCE
+/// Once you close() (aka Dispose()) this object, you can no longer talk to instruments.  
+/// This is the same for pyvisa.  (It must be inherent to the visa64.dll.)
+/// This means that you are likely to leave it open for the durration of your application.
+/// This is hard to facilitate with the normal using/dispose mechanisms.  So instead
+/// I provide a destructor that calls Dispose().  Even though that is normally not best practice (for performance reasons),
+/// it works very well in this situation; you can create it and forget about it.  (Which seems to be
+/// the approach used by pyvisa).  When your program terminates the connection will be closed.
+/// We have a static reference to a single instance in this class so the garbage collector doesn't close it.
+/// 
 /// </summary>
 public class Resource_Manager : IDisposable
 {
+    /// <summary>
+    /// This will persist an instance of the resource manager for the life of the app.
+    /// The destructor will close the connection when the application terminates.
+    /// </summary>
+    private static Resource_Manager? _instance;
+    public static Resource_Manager Get
+    {
+        get
+        {
+            if (_instance is null)
+                _instance = new Resource_Manager(new Driver(Visa_Plugin.NativeVisa));
+            return _instance;
+        }
+    }
+
     /// <summary>Resource Manager handle</summary>
     public int handle { get; private set; }
 
@@ -27,19 +50,27 @@ public class Resource_Manager : IDisposable
     /// </summary>
     /// <param name="manager_name"></param>
     /// <param name="driver"></param>
-    public Resource_Manager(Driver driver)
+    private Resource_Manager(Driver driver)
     {
         this.driver = driver;
         try
         {
-            this.open();
-            this.visa_manufacturer = this._GetVisaManufacturer();
+            this.handle = open();
+            this.visa_manufacturer = _GetVisaManufacturer();
         }
         catch (DllNotFoundException ex)
         {
             throw new DllNotFoundException("VISA dll could not be loaded. Make sure you have installed VISA: " + ex.Message);
         }
 
+    }
+
+    /// <summary>
+    /// See the description at the top of this file.
+    /// </summary>
+    ~Resource_Manager()
+    {
+        this.Dispose();
     }
 
     public override string ToString() => string.Format("Visa Resource Manager Handle {0} (plugin {1})", handle, driver.visa_plugin);
@@ -49,11 +80,10 @@ public class Resource_Manager : IDisposable
     /// - Handle
     /// - VisaManufacturer
     /// </summary>
-    public void open()
+    public int open()
     {
         this._ThrowOnError(this.driver.OpenDefaultRm(out int handle), "Opening the Default VISA Resource Manager -");
-        this.handle = handle;
-        this.visa_manufacturer = this._GetVisaManufacturer();
+        return handle;
     }
 
     /// <summary>Closes the Resource Manager</summary>
