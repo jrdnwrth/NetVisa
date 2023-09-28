@@ -63,7 +63,7 @@ public class Visa : IDisposable
         {
             if (_terminationCharacter == null)
             {
-                _terminationCharacter = (byte)this._GetAttributeInt((uint)NativeVisaAttribute.TerminationCharacter);
+                _terminationCharacter = (byte)this._GetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter);
             }
 
             return (byte)_terminationCharacter;
@@ -71,7 +71,7 @@ public class Visa : IDisposable
         set
         {
             _terminationCharacter = value;
-            this._SetAttributeInt((uint)NativeVisaAttribute.TerminationCharacter, value);
+            this._SetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter, value);
         }
     }
 
@@ -122,9 +122,9 @@ public class Visa : IDisposable
             int session;
             this._ThrowOnError(this._driver.Open(this.resource_manager.handle, this.Session.ResourceName, 0U, 0U, out session), "Error when opening new VISA Session. ResourceName: '" + resource_name + "'");
             this.Session.Handle = session;
-            this.InterfaceType = this._GetAttributeInt((int)NativeVisaAttribute.InterfaceType);
-            this.ResourceClass = this._GetAttributeString((uint)NativeVisaAttribute.ResourceClass);
-            this.TerminationCharacter = this._GetAttributeByte((uint)NativeVisaAttribute.TerminationCharacter);
+            this.InterfaceType = this._GetAttributeInt((int)NativeVisaAttributes.InterfaceType);
+            this.ResourceClass = this._GetAttributeString((uint)NativeVisaAttributes.ResourceClass);
+            this.TerminationCharacter = this._GetAttributeByte((uint)NativeVisaAttributes.TerminationCharacter);
         }
         catch (Visa_Exception _)
         {
