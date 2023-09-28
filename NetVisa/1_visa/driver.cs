@@ -16,6 +16,7 @@ public class Driver
     public DelViClose Close;
     public DelViGetAttributeInt GetAttributeInt;
     public DelViGetAttributeString GetAttributeString;
+    public DelViGetAttributeByte GetAttributeByte;
     public DelViClear Clear;
     public DelViWrite Write;
     public DelViRead Read;
@@ -64,6 +65,7 @@ public class Driver
         this.Close = new DelViClose(VisaNative64.viClose);
         this.GetAttributeInt = new DelViGetAttributeInt(VisaNative64.viGetAttribute);
         this.GetAttributeString = new DelViGetAttributeString(VisaNative64.viGetAttribute);
+        this.GetAttributeByte = new DelViGetAttributeByte(VisaNative64.viGetAttribute);
         this.Clear = new DelViClear(VisaNative64.viClear);
         this.Write = new DelViWrite(VisaNative64.viWrite);
         this.Read = new DelViRead(VisaNative64.viRead);
@@ -129,6 +131,8 @@ public class Driver
       int session,
       uint attrName,
       StringBuilder attrValue);
+
+    public delegate int DelViGetAttributeByte(int session, uint attrName, out UIntPtr attrValueIntPtr);
 
     public delegate int DelViClear(int session);
 

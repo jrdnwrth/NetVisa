@@ -61,21 +61,21 @@ namespace NetVisa
             this.SessionType = this._GetSessionKind();
             this.Settings = new Settings();
             this.VxiCapable = this.Settings.VxiCapable;
-            this._termChar = this.Settings.TermChar;
+            //this._termChar = this.Settings.TermChar;
 
             // Override settings depending on the session type.
             switch (this.SessionType)
             {
                 case SessionKind.Serial:
-                    this.ReadTermChar = _termChar;
-                    this.ReadTermCharEnabled = true;
+                    //this.TerminationCharacter = _termChar;
+                    this.ReadTerminationCharacterEnabled = true;
                     this.SerialSendEndIn = 0;
                     this.SerialSendEndOut = 0;
                     this.VxiCapable = false;
                     break;
                 case SessionKind.Socket:
-                    this.ReadTermChar = _termChar;
-                    this.ReadTermCharEnabled = true;
+                    //this.TerminationCharacter = _termChar;
+                    this.ReadTerminationCharacterEnabled = true;
                     this.VxiCapable = false;
                     break;
             }
@@ -99,17 +99,26 @@ namespace NetVisa
             DateTime now = DateTime.Now;
             bool moreDataAvailable;
             int readCount;
-            byte[] numArray = this.Read(this.FirsReadLen, out moreDataAvailable, this.AssureResponseEndWithTc, out readCount);
-            if (!moreDataAvailable)
-                return Encoding.ASCII.GetString(numArray, 0, readCount).TrimEnd(this._termChar);
+
+            byte[] byteBuffer = this.Read(this.FirsReadLen, out moreDataAvailable, this.AssureResponseEndWithTc, out readCount);
+
             string str;
-            using (MemoryStream memoryStream = new MemoryStream(readCount))
+
+            if (moreDataAvailable)
             {
-                memoryStream.Write(numArray, 0, readCount);
-                this._ReadDataUnknownLengthToStream(memoryStream, this.NextReadChunkLen, false, new DateTime?(now));
-                str = Encoding.ASCII.GetString(memoryStream.ToArray());
+                using (MemoryStream memoryStream = new MemoryStream(readCount))
+                {
+                    memoryStream.Write(byteBuffer, 0, readCount);
+                    this._ReadDataUnknownLengthToStream(memoryStream, this.NextReadChunkLen, false, new DateTime?(now));
+                    str = Encoding.ASCII.GetString(memoryStream.ToArray());
+                }
             }
-            return str.TrimEnd(this._termChar);
+
+            else
+            {
+                str = Encoding.ASCII.GetString(byteBuffer);
+            }
+            return str.TrimEnd(new[] { '\r', '\n', '\0' });
         }
 
         /// <summary>
@@ -129,7 +138,7 @@ namespace NetVisa
             long position1 = stream.Position;
             if (position1 > 0L)
                 ++segmentIx;
-            if (!this.VxiCapable & binTransfer && this.ReadTermCharEnabled)
+            if (!this.VxiCapable & binTransfer && this.ReadTerminationCharacterEnabled)
                 throw new Instrument_Exception(this.Session.ResourceName + ": " + string.Format("{0} interface does not support reading binary data of unknown length.", SessionType));
             bool finished;
             do
