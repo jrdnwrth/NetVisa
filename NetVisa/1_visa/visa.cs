@@ -11,7 +11,7 @@ public class Visa : IDisposable
 {
     /// <summary>VisaC object</summary>
     //private Driver _driver;
-    private object _readLocker;
+    private protected object _readLocker;
     public Resource_Manager resource_manager;
     private Driver _driver;
     /// <summary>Buffer for reading from instrument</summary>
@@ -49,17 +49,30 @@ public class Visa : IDisposable
     }
 
     /// <summary>Enable termination character when Reading</summary>
-    public bool ReadTermCharEnabled
+    public bool ReadTerminationCharacterEnabled
     {
         get => this._GetAttributeInt(1073676344U) == 1;
         set => this._SetAttributeInt(1073676344U, value ? 1 : 0);
     }
 
     /// <summary>Define termination character when Reading</summary>
-    public int ReadTermChar
+    private byte? _terminationCharacter = null;
+    public byte TerminationCharacter
     {
-        get => this._GetAttributeInt(1073676312U);
-        set => this._SetAttributeInt(1073676312U, value);
+        get
+        {
+            if (_terminationCharacter == null)
+            {
+                _terminationCharacter = (byte)this._GetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter);
+            }
+
+            return (byte)_terminationCharacter;
+        }
+        set
+        {
+            _terminationCharacter = value;
+            this._SetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter, value);
+        }
     }
 
     /// <summary>Send End Enable when Writing</summary>
@@ -109,8 +122,9 @@ public class Visa : IDisposable
             int session;
             this._ThrowOnError(this._driver.Open(this.resource_manager.handle, this.Session.ResourceName, 0U, 0U, out session), "Error when opening new VISA Session. ResourceName: '" + resource_name + "'");
             this.Session.Handle = session;
-            this.InterfaceType = this._GetAttributeInt(1073676657U);
-            this.ResourceClass = this._GetAttributeString(3221159937U);
+            this.InterfaceType = this._GetAttributeInt((int)NativeVisaAttributes.InterfaceType);
+            this.ResourceClass = this._GetAttributeString((uint)NativeVisaAttributes.ResourceClass);
+            this.TerminationCharacter = this._GetAttributeByte((uint)NativeVisaAttributes.TerminationCharacter);
         }
         catch (Visa_Exception _)
         {
@@ -180,8 +194,7 @@ public class Visa : IDisposable
         moreDataAvailable = this._MoreDataIsAvailable(status1);
         if (assureResponseEndWithTc && read1 < count && read1 > 0U)
         {
-            byte num = Convert.ToByte(this.ReadTermChar);
-            if (buffer[(int)read1 - 1] != num)
+            if (buffer[(int)read1 - 1] != TerminationCharacter)
             {
                 uint read2;
                 int status2 = this._ThrowOnError(this._driver.Read(this.Session.Handle, buffer, (uint)count - read1, out read2), "Read To Stream2 -");
@@ -234,6 +247,13 @@ public class Visa : IDisposable
         return attrValue.ToString();
     }
 
+    private byte _GetAttributeByte(uint attributeId)
+    {
+        UIntPtr value;
+        this._ThrowOnError(this._driver.GetAttributeByte(this.Session.Handle, attributeId, out value), "Get Attribute Byte -");
+        return (byte)value;
+    }
+
     public void Dispose()
     {
         this.Close();
@@ -252,6 +272,11 @@ public class Visa : IDisposable
     /// <param name="text">text to write</param>
     public void Write(string text)
     {
+        var terminationCharacter = Convert.ToChar(TerminationCharacter);
+
+        if (!text.EndsWith(terminationCharacter))
+            text = text + terminationCharacter;
+
         byte[] bytes = Encoding.ASCII.GetBytes(text);
         uint written;
         int status = this._driver.Write(this.Session.Handle, bytes, (uint)bytes.Length, out written);
@@ -280,7 +305,7 @@ public class Visa : IDisposable
     /// <param name="assureResponseEndWithTc">If true, each VISA read must end with TermChar. If not, the reading continues</param>
     /// <param name="readCount">Number of bytes actually read</param>
     /// <returns>Data as Byte array</returns>
-    public byte[] Read(
+    public virtual byte[] Read(
       int maxLength,
       out bool moreDataAvailable,
       bool assureResponseEndWithTc,
@@ -297,15 +322,15 @@ public class Visa : IDisposable
             moreDataAvailable = this._MoreDataIsAvailable(status1);
             if (assureResponseEndWithTc && read1 < maxLength && read1 > 0U)
             {
-                byte num = Convert.ToByte(this.ReadTermChar);
-                if (this._buffer[(int)read1 - 1] != num)
+                //byte terminationByte = Convert.ToByte(this.TerminationCharacter);
+                if (this._buffer[(int)read1 - 1] != TerminationCharacter)
                 {
                     byte[] numArray = new byte[maxLength - read1];
                     uint read2;
                     int status2 = this._ThrowOnError(this._driver.Read(this.Session.Handle, numArray, (uint)maxLength - read1, out read2), "VISA Read2 -");
                     Buffer.BlockCopy(numArray, 0, _buffer, (int)read1, (int)read2);
                     moreDataAvailable = this._MoreDataIsAvailable(status2);
-                    if (!moreDataAvailable && read1 == maxLength && this._buffer[(int)read1 - 1] != num)
+                    if (!moreDataAvailable && read1 == maxLength && this._buffer[(int)read1 - 1] != TerminationCharacter) //terminationByte)
                         moreDataAvailable = true;
                     read1 += read2;
                 }
@@ -330,7 +355,11 @@ public class Visa : IDisposable
       bool assureResponseEndWithTc,
       out int readCount)
     {
-        return Encoding.ASCII.GetString(this.Read(maxLength, out moreDataAvailable, assureResponseEndWithTc, out readCount), 0, readCount);
+        var str =
+            Encoding.ASCII.GetString(
+                this.Read(maxLength, out moreDataAvailable, assureResponseEndWithTc, out readCount), 0, readCount);
+
+        return str.TrimEnd(new[] { '\r', '\n' });
     }
 
     /// <summary>Reads single character</summary>
