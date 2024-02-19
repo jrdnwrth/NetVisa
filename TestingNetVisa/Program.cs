@@ -28,6 +28,9 @@ public class Program
         // Read
         var vset = visa.ReadString();
 
+        // ReadBytes
+        //byte[] bytes = visa.ReadBytes();
+
         // Prints: "VSET 0.000   \r\n"
         Console.WriteLine('"' + vset.Replace("\n", @"\n").Replace("\r", @"\r") + '"' + "\n");
     }

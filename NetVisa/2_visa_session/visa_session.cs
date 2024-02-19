@@ -122,6 +122,18 @@ namespace NetVisa
         }
 
         /// <summary>
+        /// Based on ReadString(), this reads a byte response of any length.
+        /// </summary>
+        public byte[] ReadBytes()
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                this._ReadDataUnknownLengthToStream(memoryStream, this.NextReadChunkLen, false);
+                return memoryStream.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Segmented reading of unknown-length data into a Stream.
         /// For Socket and Serial interfaces this method only works if the ReadTermCharacterEnabled is True
         /// Enter the startTime if you already have read some data into the stream, otherwise the method creates its own start time
