@@ -2,7 +2,6 @@
 
 public class SerialVisaSession : Visa_Session
 {
-    public string TerminationCharacter { get; set; }
     public uint BaudRate
     {
         get
