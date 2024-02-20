@@ -56,23 +56,10 @@ public class Visa : IDisposable
     }
 
     /// <summary>Define termination character when Reading</summary>
-    private byte? _terminationCharacter = null;
     public byte TerminationCharacter
     {
-        get
-        {
-            if (_terminationCharacter == null)
-            {
-                _terminationCharacter = (byte)this._GetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter);
-            }
-
-            return (byte)_terminationCharacter;
-        }
-        set
-        {
-            _terminationCharacter = value;
-            this._SetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter, value);
-        }
+        get => (byte)this._GetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter);
+        set => this._SetAttributeInt((uint)NativeVisaAttributes.TerminationCharacter, value);
     }
 
     /// <summary>Send End Enable when Writing</summary>

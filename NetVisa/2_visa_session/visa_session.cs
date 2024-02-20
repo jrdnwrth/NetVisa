@@ -116,9 +116,9 @@ namespace NetVisa
 
             else
             {
-                str = Encoding.ASCII.GetString(byteBuffer);
+                str = Encoding.ASCII.GetString(byteBuffer, 0, readCount);
             }
-            return str.TrimEnd(new[] { '\r', '\n', '\0' });
+            return str.TrimEnd((char)TerminationCharacter);
         }
 
         /// <summary>
